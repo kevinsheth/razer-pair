@@ -24,29 +24,29 @@ func Pair(ctx context.Context, provider hid.Provider, profile model.Profile, con
 	}
 	defer receiver.Close()
 
-	keyboard, err := provider.Open(ctx, profile.Keyboard)
+	peripheral, err := provider.Open(ctx, profile.Peripheral)
 	if err != nil {
-		return fmt.Errorf("open wired keyboard: %w", err)
+		return fmt.Errorf("open %s: %w", profile.Peripheral.Label, err)
 	}
-	defer keyboard.Close()
+	defer peripheral.Close()
 
 	var zero [6]byte
 	receiverID, err := receiver.Command(ctx, profile.Commands.ReceiverIdentity, zero)
 	if err != nil {
 		return fmt.Errorf("read receiver identity (0x%02x): %w", profile.Commands.ReceiverIdentity, err)
 	}
-	handshake, err := keyboard.Command(ctx, profile.Commands.KeyboardPrepare, receiverID)
+	handshake, err := peripheral.Command(ctx, profile.Commands.PeripheralPrepare, receiverID)
 	if err != nil {
-		return fmt.Errorf("prepare keyboard (0x%02x): %w", profile.Commands.KeyboardPrepare, err)
+		return fmt.Errorf("prepare %s (0x%02x): %w", profile.Peripheral.Label, profile.Commands.PeripheralPrepare, err)
 	}
 
 	if confirm == nil || !confirm() {
 		return ErrCancelled
 	}
 
-	commit, err := keyboard.Command(ctx, profile.Commands.KeyboardCommit, zero)
+	commit, err := peripheral.Command(ctx, profile.Commands.PeripheralCommit, zero)
 	if err != nil {
-		return fmt.Errorf("commit keyboard pairing (0x%02x): %w", profile.Commands.KeyboardCommit, err)
+		return fmt.Errorf("commit %s pairing (0x%02x): %w", profile.Peripheral.Label, profile.Commands.PeripheralCommit, err)
 	}
 	if !bytes.Equal(handshake[:4], commit[:4]) {
 		return ErrVerificationMismatch

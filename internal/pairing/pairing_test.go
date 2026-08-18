@@ -27,7 +27,7 @@ func TestPairSuccessConsumesVerifiedTranscript(t *testing.T) {
 	if !confirmed {
 		t.Fatal("confirmation callback was not called")
 	}
-	for _, role := range []hid.Role{hid.Receiver, hid.Keyboard} {
+	for _, role := range []hid.Role{hid.Receiver, profile.Peripheral.Role} {
 		if remaining := provider.Remaining(role); remaining != 0 {
 			t.Fatalf("%s has %d unconsumed exchanges", role, remaining)
 		}
@@ -40,8 +40,8 @@ func TestPairCancellationDoesNotCommit(t *testing.T) {
 	if !errors.Is(err, pairing.ErrCancelled) {
 		t.Fatalf("error = %v, want ErrCancelled", err)
 	}
-	if remaining := provider.Remaining(hid.Keyboard); remaining != 1 {
-		t.Fatalf("keyboard remaining exchanges = %d, want 1 commit", remaining)
+	if remaining := provider.Remaining(model.Default().Peripheral.Role); remaining != 1 {
+		t.Fatalf("device remaining exchanges = %d, want 1 commit", remaining)
 	}
 }
 
@@ -53,8 +53,8 @@ func TestPairRejectsPostCommitMismatch(t *testing.T) {
 	}
 }
 
-func TestPairReportsMissingKeyboard(t *testing.T) {
-	provider := scenario(t, "missing-keyboard")
+func TestPairReportsMissingDevice(t *testing.T) {
+	provider := scenario(t, "missing-device")
 	err := pairing.Pair(context.Background(), provider, model.Default(), func() bool { return true })
 	if err == nil || !strings.Contains(err.Error(), "wired keyboard") {
 		t.Fatalf("unexpected error: %v", err)
@@ -63,7 +63,7 @@ func TestPairReportsMissingKeyboard(t *testing.T) {
 
 func scenario(t *testing.T, name string) *mockhid.Provider {
 	t.Helper()
-	provider, err := mockhid.Scenario(name)
+	provider, err := mockhid.Scenario(name, model.Default())
 	if err != nil {
 		t.Fatal(err)
 	}

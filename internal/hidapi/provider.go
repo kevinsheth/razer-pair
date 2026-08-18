@@ -26,47 +26,59 @@ func initialize() error {
 	return initErr
 }
 
-func (p *Provider) Enumerate(ctx context.Context, specs []hid.DeviceSpec) ([]hid.Descriptor, error) {
-	if err := ctx.Err(); err != nil {
-		return nil, err
+func (p *Provider) Scan(ctx context.Context, vendorID uint16) ([]hid.Descriptor, error) {
+	if err := initialize(); err != nil {
+		return nil, fmt.Errorf("initialize HIDAPI: %w", err)
 	}
+	return enumerate(ctx, vendorID, gohid.ProductIDAny, hid.Unknown, make(map[string]reportInfo))
+}
+
+func (p *Provider) Enumerate(ctx context.Context, specs []hid.DeviceSpec) ([]hid.Descriptor, error) {
 	if err := initialize(); err != nil {
 		return nil, fmt.Errorf("initialize HIDAPI: %w", err)
 	}
 	var descriptors []hid.Descriptor
 	reports := make(map[string]reportInfo)
 	for _, spec := range specs {
-		err := gohid.Enumerate(spec.VendorID, spec.ProductID, func(info *gohid.DeviceInfo) error {
-			if err := ctx.Err(); err != nil {
-				return err
-			}
-			report, ok := reports[info.Path]
-			if !ok {
-				report.size, report.err = reportSizeForPath(info.Path)
-				reports[info.Path] = report
-			}
-			descriptor := hid.Descriptor{
-				Role:             spec.Role,
-				VendorID:         info.VendorID,
-				ProductID:        info.ProductID,
-				UsagePage:        uint32(info.UsagePage),
-				Usage:            uint32(info.Usage),
-				MaxFeatureReport: report.size,
-				Transport:        info.BusType.String(),
-				Product:          info.ProductStr,
-				Interface:        info.InterfaceNbr,
-			}
-			if report.err != nil {
-				descriptor.AccessError = report.err.Error()
-			}
-			descriptors = append(descriptors, descriptor)
-			return nil
-		})
+		found, err := enumerate(ctx, spec.VendorID, spec.ProductID, spec.Role, reports)
 		if err != nil {
 			return nil, fmt.Errorf("enumerate %s: %w", spec.Role, err)
 		}
+		for i := range found {
+			found[i].Label = spec.Label
+		}
+		descriptors = append(descriptors, found...)
 	}
 	return descriptors, nil
+}
+
+func enumerate(ctx context.Context, vendorID, productID uint16, role hid.Role, reports map[string]reportInfo) ([]hid.Descriptor, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	var descriptors []hid.Descriptor
+	err := gohid.Enumerate(vendorID, productID, func(info *gohid.DeviceInfo) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		report, ok := reports[info.Path]
+		if !ok {
+			report.size, report.err = reportSizeForPath(info.Path)
+			reports[info.Path] = report
+		}
+		descriptor := hid.Descriptor{
+			Role: role, VendorID: info.VendorID, ProductID: info.ProductID,
+			UsagePage: uint32(info.UsagePage), Usage: uint32(info.Usage),
+			MaxFeatureReport: report.size, Transport: info.BusType.String(),
+			Product: info.ProductStr, Interface: info.InterfaceNbr,
+		}
+		if report.err != nil {
+			descriptor.AccessError = report.err.Error()
+		}
+		descriptors = append(descriptors, descriptor)
+		return nil
+	})
+	return descriptors, err
 }
 
 type reportInfo struct {

@@ -8,12 +8,14 @@ import (
 type Role string
 
 const (
-	Keyboard Role = "wired-keyboard"
-	Receiver Role = "receiver"
+	Peripheral Role = "peripheral"
+	Receiver   Role = "receiver"
+	Unknown    Role = "unclassified"
 )
 
 type DeviceSpec struct {
 	Role              Role
+	Label             string
 	VendorID          uint16
 	ProductID         uint16
 	FeatureReportSize int
@@ -22,6 +24,7 @@ type DeviceSpec struct {
 
 type Descriptor struct {
 	Role             Role
+	Label            string
 	VendorID         uint16
 	ProductID        uint16
 	UsagePage        uint32
@@ -31,6 +34,13 @@ type Descriptor struct {
 	Product          string
 	Interface        int
 	AccessError      string
+}
+
+func (d Descriptor) RoleLabel() string {
+	if d.Label != "" {
+		return d.Label
+	}
+	return string(d.Role)
 }
 
 func (d Descriptor) ID() string {
@@ -43,6 +53,7 @@ type Device interface {
 }
 
 type Provider interface {
+	Scan(context.Context, uint16) ([]Descriptor, error)
 	Enumerate(ctx context.Context, specs []DeviceSpec) ([]Descriptor, error)
 	Open(ctx context.Context, spec DeviceSpec) (Device, error)
 }

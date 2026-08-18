@@ -70,6 +70,10 @@ type Provider struct {
 	openErrors  map[hid.Role]error
 }
 
+func (p *Provider) Scan(ctx context.Context, _ uint16) ([]hid.Descriptor, error) {
+	return p.Enumerate(ctx, nil)
+}
+
 func (p *Provider) Enumerate(ctx context.Context, _ []hid.DeviceSpec) ([]hid.Descriptor, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -98,8 +102,7 @@ func (p *Provider) Remaining(role hid.Role) int {
 	return 0
 }
 
-func Scenario(name string) (*Provider, error) {
-	profile := model.Default()
+func Scenario(name string, profile model.Profile) (*Provider, error) {
 	id := [6]byte{0x11, 0x22, 0x33, 0x44, 0x00, 0x00}
 	provider := newProvider(profile)
 
@@ -108,14 +111,14 @@ func Scenario(name string) (*Provider, error) {
 		provider.addPairingDevices(profile, id, [6]byte{0x11, 0x22, 0x33, 0x44, 0x11, 0x22})
 	case "mismatch":
 		provider.addPairingDevices(profile, id, [6]byte{0xaa, 0xbb, 0xcc, 0xdd})
-	case "missing-keyboard":
-		provider.descriptors = provider.descriptors[1:]
+	case "missing-device":
+		provider.descriptors = withoutRole(provider.descriptors, profile.Peripheral.Role)
 		provider.addPairingDevices(profile, id, id)
-		delete(provider.devices, hid.Keyboard)
+		delete(provider.devices, profile.Peripheral.Role)
 	case "denied":
 		provider.openErrors[hid.Receiver] = errors.New("access denied (mock Input Monitoring failure)")
 	default:
-		return nil, fmt.Errorf("unknown mock scenario %q (choose success, mismatch, missing-keyboard, or denied)", name)
+		return nil, fmt.Errorf("unknown mock scenario %q (choose success, mismatch, missing-device, or denied)", name)
 	}
 	return provider, nil
 }
@@ -123,14 +126,33 @@ func Scenario(name string) (*Provider, error) {
 func newProvider(profile model.Profile) *Provider {
 	descriptor := func(spec hid.DeviceSpec, product string) hid.Descriptor {
 		return hid.Descriptor{
-			Role: spec.Role, VendorID: spec.VendorID, ProductID: spec.ProductID,
+			Role: spec.Role, Label: spec.Label, VendorID: spec.VendorID, ProductID: spec.ProductID,
 			UsagePage: 0x01, Usage: 0x02, MaxFeatureReport: spec.FeatureReportSize,
 			Transport: "USB", Product: product, Interface: 2,
 		}
 	}
+	inaccessible := func(spec hid.DeviceSpec, product string) hid.Descriptor {
+		descriptor := descriptor(spec, product)
+		descriptor.Interface = 1
+		descriptor.Usage = 0x06
+		descriptor.MaxFeatureReport = 0
+		descriptor.AccessError = "access denied (mock non-pairing collection)"
+		return descriptor
+	}
+	input := func(spec hid.DeviceSpec, product string) hid.Descriptor {
+		descriptor := descriptor(spec, product)
+		descriptor.Interface = 1
+		descriptor.Usage = 0x06
+		descriptor.MaxFeatureReport = 1
+		return descriptor
+	}
 	return &Provider{
 		descriptors: []hid.Descriptor{
-			descriptor(profile.Keyboard, profile.Name),
+			inaccessible(profile.Peripheral, profile.Name),
+			input(profile.Peripheral, profile.Name),
+			descriptor(profile.Peripheral, profile.Name),
+			inaccessible(profile.Receiver, profile.Name+" Dongle"),
+			input(profile.Receiver, profile.Name+" Dongle"),
 			descriptor(profile.Receiver, profile.Name+" Dongle"),
 		},
 		devices:    make(map[hid.Role]*device),
@@ -138,13 +160,23 @@ func newProvider(profile model.Profile) *Provider {
 	}
 }
 
+func withoutRole(descriptors []hid.Descriptor, role hid.Role) []hid.Descriptor {
+	filtered := make([]hid.Descriptor, 0, len(descriptors))
+	for _, descriptor := range descriptors {
+		if descriptor.Role != role {
+			filtered = append(filtered, descriptor)
+		}
+	}
+	return filtered
+}
+
 func (p *Provider) addPairingDevices(profile model.Profile, receiverID, commit [6]byte) {
 	var zero [6]byte
 	p.devices[hid.Receiver] = newDevice(hid.Receiver,
 		exchange{Command: profile.Commands.ReceiverIdentity, Input: zero, Output: receiverID},
 	)
-	p.devices[hid.Keyboard] = newDevice(hid.Keyboard,
-		exchange{Command: profile.Commands.KeyboardPrepare, Input: receiverID, Output: receiverID},
-		exchange{Command: profile.Commands.KeyboardCommit, Input: zero, Output: commit},
+	p.devices[profile.Peripheral.Role] = newDevice(profile.Peripheral.Role,
+		exchange{Command: profile.Commands.PeripheralPrepare, Input: receiverID, Output: receiverID},
+		exchange{Command: profile.Commands.PeripheralCommit, Input: zero, Output: commit},
 	)
 }
