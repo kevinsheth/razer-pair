@@ -16,7 +16,11 @@ func TestProTypeUltraProfile(t *testing.T) {
 		profile.Peripheral.TransactionID != 0x1f || profile.Receiver.TransactionID != 0xff {
 		t.Fatalf("unexpected transport profile: %+v", profile)
 	}
-	if profile.Commands != (Commands{ReceiverIdentity: 0x95, PeripheralPrepare: 0x24, PeripheralCommit: 0xa4}) {
+	if profile.Commands != (Commands{
+		Identity: Command{Target: hid.Receiver, ID: 0x95},
+		Prepare:  Command{Target: hid.Peripheral, ID: 0x24},
+		Commit:   Command{Target: hid.Peripheral, ID: 0xa4},
+	}) {
 		t.Fatalf("unexpected commands: %+v", profile.Commands)
 	}
 }
@@ -30,7 +34,11 @@ func TestBasiliskUltimateProfile(t *testing.T) {
 		profile.Peripheral.ProductID != 0x0086 || profile.Receiver.ProductID != 0x0088 {
 		t.Fatalf("unexpected device profile: %+v", profile)
 	}
-	if profile.Commands != (Commands{ReceiverIdentity: 0x97, PeripheralPrepare: 0x15, PeripheralCommit: 0x95}) {
+	if profile.Commands != (Commands{
+		Identity: Command{Target: hid.Peripheral, ID: 0x97},
+		Prepare:  Command{Target: hid.Receiver, ID: 0x15},
+		Commit:   Command{Target: hid.Receiver, ID: 0x95},
+	}) {
 		t.Fatalf("unexpected commands: %+v", profile.Commands)
 	}
 }

@@ -9,11 +9,10 @@ Currently supported:
 | Model | Device | Receiver | Status |
 |---|---:|---:|---|
 | Razer Pro Type Ultra | `1532:0277` | `1532:027b` | Pairing tested |
-| Razer Basilisk Ultimate | `1532:0086` | `1532:0088` | Detection tested |
+| Razer Basilisk Ultimate | `1532:0086` | `1532:0088` | Pairing tested |
 
-The Basilisk command sequence is verified against Razer's official mouse
-pairing utility but has not yet been committed on hardware. Linux and Windows
-use the same HIDAPI transport but have not yet been tested with real devices.
+Both pairing flows have been tested on macOS hardware. Linux and Windows use
+the same HIDAPI transport but have not yet been tested with real devices.
 
 ## Build
 

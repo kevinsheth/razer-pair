@@ -6,10 +6,15 @@ import (
 	"razer-pair/internal/hid"
 )
 
+type Command struct {
+	Target hid.Role
+	ID     byte
+}
+
 type Commands struct {
-	ReceiverIdentity  byte
-	PeripheralPrepare byte
-	PeripheralCommit  byte
+	Identity Command
+	Prepare  Command
+	Commit   Command
 }
 
 type Profile struct {
@@ -48,7 +53,11 @@ var profiles = []Profile{
 			Role: hid.Receiver, Label: "receiver", VendorID: 0x1532, ProductID: 0x027b,
 			FeatureReportSize: 90, TransactionID: 0xff,
 		},
-		Commands: Commands{ReceiverIdentity: 0x95, PeripheralPrepare: 0x24, PeripheralCommit: 0xa4},
+		Commands: Commands{
+			Identity: Command{Target: hid.Receiver, ID: 0x95},
+			Prepare:  Command{Target: hid.Peripheral, ID: 0x24},
+			Commit:   Command{Target: hid.Peripheral, ID: 0xa4},
+		},
 	},
 	{
 		Slug: "basilisk-ultimate",
@@ -61,7 +70,11 @@ var profiles = []Profile{
 			Role: hid.Receiver, Label: "receiver", VendorID: 0x1532, ProductID: 0x0088,
 			FeatureReportSize: 90, TransactionID: 0xff,
 		},
-		Commands: Commands{ReceiverIdentity: 0x97, PeripheralPrepare: 0x15, PeripheralCommit: 0x95},
+		Commands: Commands{
+			Identity: Command{Target: hid.Peripheral, ID: 0x97},
+			Prepare:  Command{Target: hid.Receiver, ID: 0x15},
+			Commit:   Command{Target: hid.Receiver, ID: 0x95},
+		},
 	},
 }
 

@@ -26,7 +26,7 @@ func pair(ctx context.Context, provider hid.Provider, profile model.Profile, arg
 	}
 
 	confirm := func() bool {
-		fmt.Fprintf(options.Stdout, "Prepared %s; receiver identity received and device handshake validated.\n", profile.Name)
+		fmt.Fprintf(options.Stdout, "Prepared %s; pairing identity received and handshake validated.\n", profile.Name)
 		if *yes {
 			return true
 		}
@@ -43,7 +43,7 @@ func pair(ctx context.Context, provider hid.Provider, profile model.Profile, arg
 		fmt.Fprintln(options.Stderr, "error:", err)
 		return ExitDevice
 	}
-	fmt.Fprintln(options.Stdout, "Pairing successful; post-commit receiver identity comparison passed.")
+	fmt.Fprintln(options.Stdout, "Pairing successful; post-commit identity comparison passed.")
 	return ExitOK
 }
 
