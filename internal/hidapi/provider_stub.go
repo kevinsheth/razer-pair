@@ -13,6 +13,10 @@ type Provider struct{}
 
 func NewProvider() *Provider { return &Provider{} }
 
+func (p *Provider) Scan(context.Context, uint16) ([]hid.Descriptor, error) {
+	return nil, errors.New("real HID access requires cgo on macOS, Linux, Windows, or FreeBSD; use --mock for hardware-free testing")
+}
+
 func (p *Provider) Enumerate(context.Context, []hid.DeviceSpec) ([]hid.Descriptor, error) {
 	return nil, errors.New("real HID access requires cgo on macOS, Linux, Windows, or FreeBSD; use --mock for hardware-free testing")
 }

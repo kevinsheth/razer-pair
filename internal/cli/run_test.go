@@ -33,7 +33,17 @@ func TestInspectVerboseShowsCollectionDetails(t *testing.T) {
 	if code != cli.ExitOK {
 		t.Fatalf("code = %d, stderr = %s", code, stderr)
 	}
-	if !strings.Contains(stdout, "HID collections") || !strings.Contains(stdout, "usage=0x0001:0x0002") {
+	if !strings.Contains(stdout, "HID collections") || !strings.Contains(stdout, "usage=0x0001:0x0002") || !strings.Contains(stdout, "mock non-pairing collection") {
+		t.Fatalf("unexpected stdout:\n%s", stdout)
+	}
+}
+
+func TestScanMock(t *testing.T) {
+	code, stdout, stderr := run(t, "", "--model", "basilisk-ultimate", "--mock", "success", "scan")
+	if code != cli.ExitOK {
+		t.Fatalf("code = %d, stderr = %s", code, stderr)
+	}
+	if !strings.Contains(stdout, "1532:0086 feature=90") || !strings.Contains(stdout, "1532:0088 feature=90") || !strings.Contains(stdout, "No reports sent") {
 		t.Fatalf("unexpected stdout:\n%s", stdout)
 	}
 }
@@ -80,8 +90,8 @@ func TestPairMismatchFails(t *testing.T) {
 }
 
 func TestMissingDeviceFailsInspect(t *testing.T) {
-	code, _, stderr := run(t, "", "--mock", "missing-keyboard", "inspect")
-	if code != cli.ExitDevice || !strings.Contains(stderr, "wired-keyboard not detected") || !strings.Contains(stderr, "--verbose") {
+	code, _, stderr := run(t, "", "--mock", "missing-device", "inspect")
+	if code != cli.ExitDevice || !strings.Contains(stderr, "wired keyboard not detected") || !strings.Contains(stderr, "--verbose") {
 		t.Fatalf("code = %d, stderr = %s", code, stderr)
 	}
 }
@@ -95,7 +105,14 @@ func TestAccessDeniedFailsBeforePairing(t *testing.T) {
 
 func TestListModels(t *testing.T) {
 	code, stdout, stderr := run(t, "", "list-models")
-	if code != cli.ExitOK || !strings.Contains(stdout, "pro-type-ultra") {
+	if code != cli.ExitOK || !strings.Contains(stdout, "pro-type-ultra") || !strings.Contains(stdout, "basilisk-ultimate") {
+		t.Fatalf("code = %d, stdout = %s, stderr = %s", code, stdout, stderr)
+	}
+}
+
+func TestBasiliskMockPair(t *testing.T) {
+	code, stdout, stderr := run(t, "", "--model", "basilisk-ultimate", "--mock", "success", "pair", "--yes")
+	if code != cli.ExitOK || !strings.Contains(stdout, "Pairing successful") {
 		t.Fatalf("code = %d, stdout = %s, stderr = %s", code, stdout, stderr)
 	}
 }

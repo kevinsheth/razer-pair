@@ -9,8 +9,23 @@ type Role string
 
 const (
 	Keyboard Role = "wired-keyboard"
+	Mouse    Role = "wired-mouse"
 	Receiver Role = "receiver"
+	Unknown  Role = "unclassified"
 )
+
+func (r Role) Label() string {
+	switch r {
+	case Keyboard:
+		return "wired keyboard"
+	case Mouse:
+		return "wired mouse"
+	case Receiver:
+		return "receiver"
+	default:
+		return "device"
+	}
+}
 
 type DeviceSpec struct {
 	Role              Role
@@ -43,6 +58,7 @@ type Device interface {
 }
 
 type Provider interface {
+	Scan(context.Context, uint16) ([]Descriptor, error)
 	Enumerate(ctx context.Context, specs []DeviceSpec) ([]Descriptor, error)
 	Open(ctx context.Context, spec DeviceSpec) (Device, error)
 }
