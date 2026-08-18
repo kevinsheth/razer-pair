@@ -26,7 +26,7 @@ func Pair(ctx context.Context, provider hid.Provider, profile model.Profile, con
 
 	peripheral, err := provider.Open(ctx, profile.Peripheral)
 	if err != nil {
-		return fmt.Errorf("open %s: %w", profile.Peripheral.Role.Label(), err)
+		return fmt.Errorf("open %s: %w", profile.Peripheral.Label, err)
 	}
 	defer peripheral.Close()
 
@@ -37,7 +37,7 @@ func Pair(ctx context.Context, provider hid.Provider, profile model.Profile, con
 	}
 	handshake, err := peripheral.Command(ctx, profile.Commands.PeripheralPrepare, receiverID)
 	if err != nil {
-		return fmt.Errorf("prepare %s (0x%02x): %w", profile.Peripheral.Role.Label(), profile.Commands.PeripheralPrepare, err)
+		return fmt.Errorf("prepare %s (0x%02x): %w", profile.Peripheral.Label, profile.Commands.PeripheralPrepare, err)
 	}
 
 	if confirm == nil || !confirm() {
@@ -46,7 +46,7 @@ func Pair(ctx context.Context, provider hid.Provider, profile model.Profile, con
 
 	commit, err := peripheral.Command(ctx, profile.Commands.PeripheralCommit, zero)
 	if err != nil {
-		return fmt.Errorf("commit %s pairing (0x%02x): %w", profile.Peripheral.Role.Label(), profile.Commands.PeripheralCommit, err)
+		return fmt.Errorf("commit %s pairing (0x%02x): %w", profile.Peripheral.Label, profile.Commands.PeripheralCommit, err)
 	}
 	if !bytes.Equal(handshake[:4], commit[:4]) {
 		return ErrVerificationMismatch

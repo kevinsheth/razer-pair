@@ -26,7 +26,8 @@ func TestBasiliskUltimateProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if profile.Peripheral.Role != hid.Mouse || profile.Peripheral.ProductID != 0x0086 || profile.Receiver.ProductID != 0x0088 {
+	if profile.Peripheral.Role != hid.Peripheral || profile.Peripheral.Label != "wired mouse" ||
+		profile.Peripheral.ProductID != 0x0086 || profile.Receiver.ProductID != 0x0088 {
 		t.Fatalf("unexpected device profile: %+v", profile)
 	}
 	if profile.Commands != (Commands{ReceiverIdentity: 0x97, PeripheralPrepare: 0x15, PeripheralCommit: 0x95}) {

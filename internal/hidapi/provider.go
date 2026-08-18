@@ -44,6 +44,9 @@ func (p *Provider) Enumerate(ctx context.Context, specs []hid.DeviceSpec) ([]hid
 		if err != nil {
 			return nil, fmt.Errorf("enumerate %s: %w", spec.Role, err)
 		}
+		for i := range found {
+			found[i].Label = spec.Label
+		}
 		descriptors = append(descriptors, found...)
 	}
 	return descriptors, nil

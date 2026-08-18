@@ -126,7 +126,7 @@ func Scenario(name string, profile model.Profile) (*Provider, error) {
 func newProvider(profile model.Profile) *Provider {
 	descriptor := func(spec hid.DeviceSpec, product string) hid.Descriptor {
 		return hid.Descriptor{
-			Role: spec.Role, VendorID: spec.VendorID, ProductID: spec.ProductID,
+			Role: spec.Role, Label: spec.Label, VendorID: spec.VendorID, ProductID: spec.ProductID,
 			UsagePage: 0x01, Usage: 0x02, MaxFeatureReport: spec.FeatureReportSize,
 			Transport: "USB", Product: product, Interface: 2,
 		}
@@ -139,11 +139,20 @@ func newProvider(profile model.Profile) *Provider {
 		descriptor.AccessError = "access denied (mock non-pairing collection)"
 		return descriptor
 	}
+	input := func(spec hid.DeviceSpec, product string) hid.Descriptor {
+		descriptor := descriptor(spec, product)
+		descriptor.Interface = 1
+		descriptor.Usage = 0x06
+		descriptor.MaxFeatureReport = 1
+		return descriptor
+	}
 	return &Provider{
 		descriptors: []hid.Descriptor{
 			inaccessible(profile.Peripheral, profile.Name),
+			input(profile.Peripheral, profile.Name),
 			descriptor(profile.Peripheral, profile.Name),
 			inaccessible(profile.Receiver, profile.Name+" Dongle"),
+			input(profile.Receiver, profile.Name+" Dongle"),
 			descriptor(profile.Receiver, profile.Name+" Dongle"),
 		},
 		devices:    make(map[hid.Role]*device),

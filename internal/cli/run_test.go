@@ -39,11 +39,13 @@ func TestInspectVerboseShowsCollectionDetails(t *testing.T) {
 }
 
 func TestScanMock(t *testing.T) {
-	code, stdout, stderr := run(t, "", "--model", "basilisk-ultimate", "--mock", "success", "scan")
+	code, stdout, stderr := run(t, "", "--model", "not-yet-supported", "--mock", "success", "scan")
 	if code != cli.ExitOK {
 		t.Fatalf("code = %d, stderr = %s", code, stderr)
 	}
-	if !strings.Contains(stdout, "1532:0086 feature=90") || !strings.Contains(stdout, "1532:0088 feature=90") || !strings.Contains(stdout, "No reports sent") {
+	if !strings.Contains(stdout, "1532:0277 interfaces=[1 feature=1] [2 feature=90]") ||
+		!strings.Contains(stdout, "1532:027b interfaces=[1 feature=1] [2 feature=90]") ||
+		!strings.Contains(stdout, "No reports sent") {
 		t.Fatalf("unexpected stdout:\n%s", stdout)
 	}
 }

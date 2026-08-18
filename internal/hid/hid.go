@@ -8,27 +8,14 @@ import (
 type Role string
 
 const (
-	Keyboard Role = "wired-keyboard"
-	Mouse    Role = "wired-mouse"
-	Receiver Role = "receiver"
-	Unknown  Role = "unclassified"
+	Peripheral Role = "peripheral"
+	Receiver   Role = "receiver"
+	Unknown    Role = "unclassified"
 )
-
-func (r Role) Label() string {
-	switch r {
-	case Keyboard:
-		return "wired keyboard"
-	case Mouse:
-		return "wired mouse"
-	case Receiver:
-		return "receiver"
-	default:
-		return "device"
-	}
-}
 
 type DeviceSpec struct {
 	Role              Role
+	Label             string
 	VendorID          uint16
 	ProductID         uint16
 	FeatureReportSize int
@@ -37,6 +24,7 @@ type DeviceSpec struct {
 
 type Descriptor struct {
 	Role             Role
+	Label            string
 	VendorID         uint16
 	ProductID        uint16
 	UsagePage        uint32
@@ -46,6 +34,13 @@ type Descriptor struct {
 	Product          string
 	Interface        int
 	AccessError      string
+}
+
+func (d Descriptor) RoleLabel() string {
+	if d.Label != "" {
+		return d.Label
+	}
+	return string(d.Role)
 }
 
 func (d Descriptor) ID() string {
