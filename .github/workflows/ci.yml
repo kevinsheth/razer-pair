@@ -58,6 +58,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
+          path-type: inherit
           install: mingw-w64-x86_64-gcc
       - shell: msys2 {0}
         env:
