@@ -45,6 +45,8 @@ func TestScanMock(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "1532:0277 interfaces=[1 feature=1] [2 feature=90]") ||
 		!strings.Contains(stdout, "1532:027b interfaces=[1 feature=1] [2 feature=90]") ||
+		!strings.Contains(stdout, "match=pro-type-ultra/peripheral") ||
+		!strings.Contains(stdout, "match=pro-type-ultra/receiver") ||
 		!strings.Contains(stdout, "No reports sent") {
 		t.Fatalf("unexpected stdout:\n%s", stdout)
 	}
@@ -107,13 +109,21 @@ func TestAccessDeniedFailsBeforePairing(t *testing.T) {
 
 func TestListModels(t *testing.T) {
 	code, stdout, stderr := run(t, "", "list-models")
-	if code != cli.ExitOK || !strings.Contains(stdout, "pro-type-ultra") || !strings.Contains(stdout, "basilisk-ultimate") {
+	if code != cli.ExitOK || !strings.Contains(stdout, "pro-type-ultra") ||
+		!strings.Contains(stdout, "basilisk-ultimate") || !strings.Contains(stdout, "pro-click-v2") {
 		t.Fatalf("code = %d, stdout = %s, stderr = %s", code, stdout, stderr)
 	}
 }
 
 func TestBasiliskMockPair(t *testing.T) {
 	code, stdout, stderr := run(t, "", "--model", "basilisk-ultimate", "--mock", "success", "pair", "--yes")
+	if code != cli.ExitOK || !strings.Contains(stdout, "Pairing successful") {
+		t.Fatalf("code = %d, stdout = %s, stderr = %s", code, stdout, stderr)
+	}
+}
+
+func TestProClickV2MockPair(t *testing.T) {
+	code, stdout, stderr := run(t, "", "--model", "pro-click-v2", "--mock", "success", "pair", "--yes")
 	if code != cli.ExitOK || !strings.Contains(stdout, "Pairing successful") {
 		t.Fatalf("code = %d, stdout = %s, stderr = %s", code, stdout, stderr)
 	}

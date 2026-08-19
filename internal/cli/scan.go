@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"razer-pair/internal/hid"
+	"razer-pair/internal/model"
 )
 
 func scan(ctx context.Context, provider hid.Provider, args []string, options Options) int {
@@ -67,9 +68,25 @@ func printScanSummary(w io.Writer, descriptors []hid.Descriptor) {
 	})
 	for _, id := range ids {
 		group := groups[id]
-		fmt.Fprintf(w, "  %s interfaces=%s bus=%s product=%q\n",
-			group[0].ID(), formatInterfaces(group), group[0].Transport, group[0].Product)
+		fmt.Fprintf(w, "  %s interfaces=%s bus=%s product=%q%s\n",
+			group[0].ID(), formatInterfaces(group), group[0].Transport, group[0].Product,
+			formatProfileMatches(id))
 	}
+}
+
+func formatProfileMatches(id deviceID) string {
+	var matches []string
+	for _, profile := range model.All() {
+		for _, spec := range profile.Specs() {
+			if spec.VendorID == id.vendor && spec.ProductID == id.product {
+				matches = append(matches, profile.Slug+"/"+string(spec.Role))
+			}
+		}
+	}
+	if len(matches) == 0 {
+		return ""
+	}
+	return " match=" + strings.Join(matches, ",")
 }
 
 func formatInterfaces(descriptors []hid.Descriptor) string {

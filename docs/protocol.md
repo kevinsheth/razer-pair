@@ -23,6 +23,7 @@ class `0x00` and the requested command, and contain a valid checksum.
 |---|---:|---:|---:|
 | Pro Type Ultra | receiver `0x95` | keyboard `0x24` | keyboard `0xa4` |
 | Basilisk Ultimate | mouse `0x97` | receiver `0x15` | receiver `0x95` |
+| Pro Click V2 | receiver `0x95` | mouse `0x24` | mouse `0xa4` |
 
 ## Pairing sequence
 
@@ -41,3 +42,8 @@ The buffer reuse in step 2 and fresh zero buffer in step 4 are required.
 The Basilisk profile was derived by static analysis of Razer Mouse Pairing
 Utility v1.00.07_r2 (SHA-256
 `18743c5b3253a5308df98abd7d0011bed48a0dbef858cb2a2ec2f952ab03aba2`).
+
+The Pro Click V2 profile was derived from Razer USB HyperSpeed Dongle Utility
+v1.00.16_r1 (SHA-256
+`30214af688e8572396d8a0011c9e6a4a0f46e61b0052890834b6d8d3c932730b`).
+Its hardware pairing test is pending.
