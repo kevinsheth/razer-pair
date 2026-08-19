@@ -64,10 +64,20 @@ func inspect(ctx context.Context, provider hid.Provider, profile model.Profile, 
 	}
 	fmt.Fprintf(stdout, "Ready: exact %s and receiver feature interfaces found.\n", profile.Peripheral.Label)
 	if dryRun {
-		fmt.Fprintf(stdout, "No reports sent. Planned sequence: receiver 0x%02x, device 0x%02x, confirmation, device 0x%02x.\n",
-			profile.Commands.ReceiverIdentity, profile.Commands.PeripheralPrepare, profile.Commands.PeripheralCommit)
+		fmt.Fprintf(stdout, "No reports sent. Planned sequence: %s 0x%02x, %s 0x%02x, confirmation, %s 0x%02x.\n",
+			commandLabel(profile, profile.Commands.Identity), profile.Commands.Identity.ID,
+			commandLabel(profile, profile.Commands.Prepare), profile.Commands.Prepare.ID,
+			commandLabel(profile, profile.Commands.Commit), profile.Commands.Commit.ID)
 	}
 	return ExitOK
+}
+
+func commandLabel(profile model.Profile, command model.Command) string {
+	spec, ok := profile.Spec(command.Target)
+	if !ok {
+		return "invalid target"
+	}
+	return spec.Label
 }
 
 func matches(descriptor hid.Descriptor, spec hid.DeviceSpec) bool {

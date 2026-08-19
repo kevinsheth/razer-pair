@@ -170,13 +170,18 @@ func withoutRole(descriptors []hid.Descriptor, role hid.Role) []hid.Descriptor {
 	return filtered
 }
 
-func (p *Provider) addPairingDevices(profile model.Profile, receiverID, commit [6]byte) {
+func (p *Provider) addPairingDevices(profile model.Profile, identity, commit [6]byte) {
 	var zero [6]byte
-	p.devices[hid.Receiver] = newDevice(hid.Receiver,
-		exchange{Command: profile.Commands.ReceiverIdentity, Input: zero, Output: receiverID},
-	)
-	p.devices[profile.Peripheral.Role] = newDevice(profile.Peripheral.Role,
-		exchange{Command: profile.Commands.PeripheralPrepare, Input: receiverID, Output: receiverID},
-		exchange{Command: profile.Commands.PeripheralCommit, Input: zero, Output: commit},
-	)
+	exchanges := map[hid.Role][]exchange{}
+	add := func(command model.Command, input, output [6]byte) {
+		exchanges[command.Target] = append(exchanges[command.Target], exchange{
+			Command: command.ID, Input: input, Output: output,
+		})
+	}
+	add(profile.Commands.Identity, zero, identity)
+	add(profile.Commands.Prepare, identity, identity)
+	add(profile.Commands.Commit, zero, commit)
+	for _, role := range []hid.Role{hid.Peripheral, hid.Receiver} {
+		p.devices[role] = newDevice(role, exchanges[role]...)
+	}
 }

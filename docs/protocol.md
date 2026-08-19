@@ -19,19 +19,20 @@ class `0x00` and the requested command, and contain a valid checksum.
 
 ## Commands
 
-| Model | Receiver identity | Device prepare | Device commit |
+| Model | Identity | Prepare | Commit |
 |---|---:|---:|---:|
-| Pro Type Ultra | `0x95` | `0x24` | `0xa4` |
-| Basilisk Ultimate | `0x97` | `0x15` | `0x95` |
+| Pro Type Ultra | receiver `0x95` | keyboard `0x24` | keyboard `0xa4` |
+| Basilisk Ultimate | mouse `0x97` | receiver `0x15` | receiver `0x95` |
 
 ## Pairing sequence
 
-1. Send the receiver identity command with six zero bytes. Preserve its
+1. Send the profile's identity command with six zero bytes. Preserve its
    six-byte response.
-2. Send the device prepare command with that exact response. Preserve the
-   prepare response as the handshake result.
+2. Send the prepare command to its profile-defined target with that exact
+   response. Preserve the prepare response as the handshake result.
 3. Obtain user confirmation.
-4. Send the device commit command with a new six-byte zero buffer.
+4. Send the commit command to its profile-defined target with a new six-byte
+   zero buffer.
 5. Compare the first four bytes returned by prepare and commit. Pairing is
    successful only when they match.
 
