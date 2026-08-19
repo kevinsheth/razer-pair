@@ -31,7 +31,8 @@ class `0x00` and the requested command, and contain a valid checksum.
 2. Send the prepare command to its profile-defined target with that exact
    response. Preserve the prepare response as the handshake result.
 3. Obtain user confirmation.
-4. Send the device commit command with a new six-byte zero buffer.
+4. Send the commit command to its profile-defined target with a new six-byte
+   zero buffer.
 5. Compare the first four bytes returned by prepare and commit. Pairing is
    successful only when they match.
 
