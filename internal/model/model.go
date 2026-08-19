@@ -31,12 +31,11 @@ func (p Profile) Specs() []hid.DeviceSpec {
 
 func (p Profile) Spec(role hid.Role) (hid.DeviceSpec, bool) {
 	switch role {
-	case hid.Receiver:
+	case p.Peripheral.Role:
+		return p.Peripheral, true
+	case p.Receiver.Role:
 		return p.Receiver, true
 	default:
-		if role == p.Peripheral.Role {
-			return p.Peripheral, true
-		}
 		return hid.DeviceSpec{}, false
 	}
 }
@@ -74,6 +73,23 @@ var profiles = []Profile{
 			Identity: Command{Target: hid.Peripheral, ID: 0x97},
 			Prepare:  Command{Target: hid.Receiver, ID: 0x15},
 			Commit:   Command{Target: hid.Receiver, ID: 0x95},
+		},
+	},
+	{
+		Slug: "pro-click-v2",
+		Name: "Razer Pro Click V2",
+		Peripheral: hid.DeviceSpec{
+			Role: hid.Peripheral, Label: "wired mouse", VendorID: 0x1532, ProductID: 0x00d0,
+			FeatureReportSize: 90, TransactionID: 0x1f,
+		},
+		Receiver: hid.DeviceSpec{
+			Role: hid.Receiver, Label: "receiver", VendorID: 0x1532, ProductID: 0x00d1,
+			FeatureReportSize: 90, TransactionID: 0xff,
+		},
+		Commands: Commands{
+			Identity: Command{Target: hid.Receiver, ID: 0x95},
+			Prepare:  Command{Target: hid.Peripheral, ID: 0x24},
+			Commit:   Command{Target: hid.Peripheral, ID: 0xa4},
 		},
 	},
 }

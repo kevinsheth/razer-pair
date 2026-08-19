@@ -10,8 +10,9 @@ Currently supported:
 |---|---:|---:|---|
 | Razer Pro Type Ultra | `1532:0277` | `1532:027b` | Pairing tested |
 | Razer Basilisk Ultimate | `1532:0086` | `1532:0088` | Pairing tested |
+| Razer Pro Click V2 | `1532:00d0` | `1532:00d1` | Hardware test pending |
 
-Both pairing flows have been tested on macOS hardware. Linux and Windows use
+The tested pairing flows were verified on macOS hardware. Linux and Windows use
 the same HIDAPI transport but have not yet been tested with real devices.
 
 ## Build
